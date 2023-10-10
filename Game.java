@@ -9,6 +9,7 @@ public abstract class Game {
     private final Set<String> usedTeamNames = new HashSet<>();
 
     public static void StartGame(){
+        Welcome.first_sent();
         new ChooseGame(InputValidator.validateGameChoice());
     }
     public Game(){};

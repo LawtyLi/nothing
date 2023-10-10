@@ -34,6 +34,9 @@ public class Player {
     public void addScore() {score++;}
     public String getName() {return name;}
     public int getNumOfWalls() {return numOfWalls;}
+
+    public void setNumOfWalls(int numOfWalls) {this.numOfWalls = numOfWalls;}
+
     public int getX() {return x;}
     public int getY() {return y;}
     public void setX(int x) {this.x = x;}

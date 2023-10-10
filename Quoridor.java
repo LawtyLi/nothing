@@ -14,21 +14,21 @@ public class Quoridor extends Game{
         execute();
     }
     @Override
-    protected void execute() {
+    protected void execute() {  // the main logic of the game
         int currentPlayerIndex = 0;
         board = new Board(9);
         choose_piece();
         board.show_board(board.getTiles());
         System.out.println();
         while(true){
-            if(selectedPlayers[currentPlayerIndex].getNumOfWalls() == 0){
+            if(selectedPlayers[currentPlayerIndex].getNumOfWalls() == 0){ // if the player has no walls left
                 System.out.println("Player" + (currentPlayerIndex+1) + " " + selectedPlayers[currentPlayerIndex].getName() +
                         " move :");
             }else{
                 System.out.println("Player" + (currentPlayerIndex+1) + " " + selectedPlayers[currentPlayerIndex].getName() +
                         " move or place a wall :");
             }
-            validMoveOrWall(currentPlayerIndex);
+            validMoveOrWall(currentPlayerIndex);  // execute the move or place a wall
             if(is_win() == 1){
                 after_win(0);
                 break;
@@ -40,10 +40,6 @@ public class Quoridor extends Game{
         }
     }
     private int is_win() {
-        // Assuming you have a way to get the current player's piece position, for instance:
-        // Position position = currentPlayer.getPiecePosition();
-        // If not, you would need to add methods or mechanisms to track the current position of a player's piece.
-
         if (selectedPlayers[0].getX() == 16) {
             return 1;
         } else if (selectedPlayers[1].getX() == 0) {
@@ -57,8 +53,12 @@ public class Quoridor extends Game{
 
         for (int i = 0; i < 2; i++) {
             while (true) {
-                System.out.print("Player " + (i + 1) + ", please choose a letter as your piece: ");
+                System.out.print("Player " + (i + 1) + ", please choose a letter as your piece (or type 'quit' to exit): ");
                 String input = scanner.nextLine().trim();
+                if ("quit".equalsIgnoreCase(input)) {
+                    System.out.println("Exiting the game...");
+                    System.exit(0);  // Terminate the program
+                }
                 if (input.length() == 1 && Character.isLetter(input.charAt(0))) {
                     // 如果是第二个玩家，检查选择的棋子是否与第一个玩家相同
                     if (i == 1 && input.equalsIgnoreCase(firstPlayerPiece)) {
@@ -83,12 +83,13 @@ public class Quoridor extends Game{
         selectedPlayers[1].setX(16);
         selectedPlayers[1].setY(17);
     }
+
     public void setPieceToInitialPosition(Player player, int x, int y) {
         Colour colour = new Colour(getPlayerTeam(player).getColour().getName());
         String pieceSymbol = player.getPiece().getSymbol();
         board.setTile(x, y, pieceSymbol, colour);
     }
-    public void validMoveOrWall(int currentPlayerIndex) {
+    public void validMoveOrWall(int currentPlayerIndex) { // execute the move or place a wall
         Scanner scanner = new Scanner(System.in);
 
         while (true) {
@@ -115,22 +116,11 @@ public class Quoridor extends Game{
             }
         }
     }
-    private String[] getWallCoordinates(Scanner scanner, String wallOrientation, Board board) {
-        while (true) {
-            System.out.print(wallOrientation.equals("1") ? "Enter wall coordinates in the format “r c1 c2” (or 'r' to return): " : "Enter wall coordinates in the format “c r1 r2” (or 'r' to return): ");
-            String[] wallCoordinates = scanner.nextLine().split(" ");
-
-            if (wallCoordinates.length == 1 && wallCoordinates[0].equalsIgnoreCase("r")) {
-                System.out.println("Returning to choose wall orientation.");
-                return null;
-            } else if (!isValidCoordinates(wallCoordinates)) {
-                System.out.println("Invalid input format. Please try again.");
-            } else {
-                if (processWallCoordinates(wallCoordinates, wallOrientation, board)) {
-                    return wallCoordinates;
-                }
-            }
-        }
+    public void move(Player currentPlayer) {
+        List<Tile> validMoves = findValidMoves(currentPlayer);  // get all valid moves
+        displayValidMovesOnBoard(validMoves);  // dispaly valid moves on the board
+        Tile chosenTile = getUserMoveChoice(validMoves); // get user's move choice
+        executeMoveChoice(currentPlayer, chosenTile, validMoves); // execute the move choice
     }
     public void placeWall(Player currentPlayer) {
         Scanner scanner = new Scanner(System.in);
@@ -155,7 +145,33 @@ public class Quoridor extends Game{
                         continue;
                     }
                 }
-                if (isWallPlaced) break;
+                if (isWallPlaced) {
+                    currentPlayer.setNumOfWalls(currentPlayer.getNumOfWalls() - 1);
+                    System.out.println("Player" + (selectedPlayers[0] == currentPlayer ? "1" : "2") + " " + currentPlayer.getName() + " has " + currentPlayer.getNumOfWalls() + " walls left.");
+                    System.out.println();
+                    break;
+                }
+            }
+        }
+    }
+    private String[] getWallCoordinates(Scanner scanner, String wallOrientation, Board board) {
+        while (true) {
+            System.out.print(wallOrientation.equals("1") ? "Enter wall coordinates in the format “row column1 column2” like '4 5 6'(or 'r' to return): " : "Enter wall coordinates in the format “c r1 r2” (or 'r' to return): ");
+            String input = scanner.nextLine().trim();
+            if ("quit".equalsIgnoreCase(input)) {
+                System.out.println("Exiting the game...");
+                System.exit(0);  // Terminate the program
+            }
+            String[] wallCoordinates = input.split(" ");
+            if (wallCoordinates.length == 1 && wallCoordinates[0].equalsIgnoreCase("r")) {
+                System.out.println("Returning to choose wall orientation.");
+                return null;
+            } else if (!isValidCoordinates(wallCoordinates)) {
+                System.out.println("Invalid input format. Please try again.");
+            } else {
+                if (processWallCoordinates(wallCoordinates, wallOrientation, board)) {
+                    return wallCoordinates;
+                }
             }
         }
     }
@@ -227,13 +243,6 @@ public class Quoridor extends Game{
             return false;
         }
     }
-
-    public void move(Player currentPlayer) {
-        List<Tile> validMoves = findValidMoves(currentPlayer);
-        displayValidMovesOnBoard(validMoves);
-        Tile chosenTile = getUserMoveChoice(validMoves);
-        executeMoveChoice(currentPlayer, chosenTile, validMoves);
-    }
     private List<Tile> findValidMoves(Player currentPlayer) {
         int x = currentPlayer.getX();
         int y = currentPlayer.getY();
@@ -257,7 +266,6 @@ public class Quoridor extends Game{
                 if (y + 4 < board.getTiles()[0].length) validMoves.add(board.getTiles()[x-2][y+4]);
             }
         }
-
         // 下方
         if (x + 2 < board.getTiles().length) {
             if (board.getTiles()[x+1][y].getColour().getName().equals("white")
@@ -274,7 +282,6 @@ public class Quoridor extends Game{
                 if (y + 4 < board.getTiles()[0].length) validMoves.add(board.getTiles()[x+2][y+4]);
             }
         }
-
         // 左边
         if (y - 4 >= 0) {
             if (board.getTiles()[x][y-2].getColour().getName().equals("white")
@@ -291,7 +298,6 @@ public class Quoridor extends Game{
                 if (x + 2 < board.getTiles().length) validMoves.add(board.getTiles()[x+2][y-4]);
             }
         }
-
         // 右边
         if (y + 4 < board.getTiles()[0].length) {
             if (board.getTiles()[x][y+2].getColour().getName().equals("white")
@@ -350,15 +356,20 @@ public class Quoridor extends Game{
                 }
             }
         }
-        Tile outside, inside;
+        Tile outside, inside, outside1, inside1;
         if (wallOrientation.equals("1")) {
             outside = board.getTiles()[xStart-1][yStart+1];
+            outside1 = board.getTiles()[xStart-1][yEnd-1];   // 上面的两个格子
             inside = board.getTiles()[xStart+1][yStart+1];
+            inside1 = board.getTiles()[xStart+1][yEnd-1];   // 下面的两个格子
+
         } else {
             outside = board.getTiles()[xStart][yStart-2];
+            outside1 = board.getTiles()[xEnd][yStart-2];   // 左边的两个格子
             inside = board.getTiles()[xStart][yStart+2];
+            inside1 = board.getTiles()[xEnd][yStart+2];   // 右边的两个格子
         }
-        if (!canReach(outside, inside, new HashSet<>())) {
+        if (!canReach(outside, inside, new HashSet<>()) && !canReach(outside1, inside1, new HashSet<>())) {
             System.out.println("This wall forms an enclosed space. Choose another location.");
             for (int i = xStart; i <= xEnd; i++) {
                 for (int j = yStart; j <= yEnd; j++) {
@@ -379,6 +390,10 @@ public class Quoridor extends Game{
     private String getWallOrientation(Scanner scanner){
         System.out.print("Enter 1 for horizontal wall or 2 for vertical wall (You can change the choice anytime until a valid wall is placed): ");
         String wallOrientation = scanner.nextLine();
+        if ("quit".equalsIgnoreCase(wallOrientation)) {
+            System.out.println("Exiting the game...");
+            System.exit(0);  // Terminate the program
+        }
 
         if (wallOrientation.equals("1")) {
             // Print the board suitable for horizontal wall placement
@@ -428,17 +443,19 @@ public class Quoridor extends Game{
         }
         board.show_board(board.getTiles());
     }
-    private Tile getUserMoveChoice(List<Tile> sortedValidMoves) {
+    private static Tile getUserMoveChoice(List<Tile> sortedValidMoves) {
         Scanner scanner = new Scanner(System.in);
         while (true) {
             System.out.print("Please choose a number corresponding to a valid move: ");
             String input = scanner.nextLine();
-
+            if ("quit".equalsIgnoreCase(input)) {
+                System.out.println("Exiting the game...");
+                System.exit(0);  // Terminate the program
+            }
             if (!input.matches("\\d+")) { // if input is not a number
                 System.out.println("Invalid input. Please enter a number.");
                 continue;
             }
-
             int chosenMove = Integer.parseInt(input);
             if (chosenMove > 0 && chosenMove <= sortedValidMoves.size()) {
                 return sortedValidMoves.get(chosenMove - 1);
