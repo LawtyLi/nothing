@@ -101,7 +101,10 @@ public class Quoridor extends Game{
                 System.exit(0);
             } else if (input.equals("m")) {
                 // 调用移动玩家的逻辑
-                move(selectedPlayers[currentPlayerIndex]);
+                Tile chosenTile = move(selectedPlayers[currentPlayerIndex]);
+                if(chosenTile == null) { // If user wants to return
+                    continue;  // Restart the loop to let the user choose again
+                }
                 break;
             } else if (input.equals("p")) {
                 if (selectedPlayers[currentPlayerIndex].getNumOfWalls() == 0) {
@@ -116,12 +119,17 @@ public class Quoridor extends Game{
             }
         }
     }
-    public void move(Player currentPlayer) {
-        List<Tile> validMoves = findValidMoves(currentPlayer);  // get all valid moves
-        displayValidMovesOnBoard(validMoves);  // dispaly valid moves on the board
-        Tile chosenTile = getUserMoveChoice(validMoves); // get user's move choice
-        executeMoveChoice(currentPlayer, chosenTile, validMoves); // execute the move choice
+    public Tile move(Player currentPlayer) {
+        List<Tile> validMoves = findValidMoves(currentPlayer);
+        displayValidMovesOnBoard(validMoves);
+        Tile chosenTile = getUserMoveChoice(validMoves);
+        if(chosenTile == null) {
+            return null;
+        }
+        executeMoveChoice(currentPlayer, chosenTile, validMoves);
+        return chosenTile;
     }
+
     public void placeWall(Player currentPlayer) {
         Scanner scanner = new Scanner(System.in);
         boolean isWallPlaced = false;
@@ -262,8 +270,8 @@ public class Quoridor extends Game{
             // 3. 没有墙，但是有对面的棋子，对面的棋子后面有墙体
             else if (x - 4 >= 0 && board.getTiles()[x-2][y].getPiece().getSymbol().equals(opponentPieceSymbol(currentPlayer))
                     && !board.getTiles()[x-3][y].getColour().getName().equals("white")) {
-                if (y - 4 >= 0) validMoves.add(board.getTiles()[x-2][y-4]);
-                if (y + 4 < board.getTiles()[0].length) validMoves.add(board.getTiles()[x-2][y+4]);
+                if (y - 4 >= 0 && board.getTiles()[x-2][y-2].getColour().getName().equals("white")) validMoves.add(board.getTiles()[x-2][y-4]);
+                if (y + 4 < board.getTiles()[0].length && board.getTiles()[x-2][y+2].getColour().getName().equals("white")) validMoves.add(board.getTiles()[x-2][y+4]);
             }
         }
         // 下方
@@ -278,8 +286,8 @@ public class Quoridor extends Game{
             }
             else if (x + 4 < board.getTiles().length && board.getTiles()[x+2][y].getPiece().getSymbol().equals(opponentPieceSymbol(currentPlayer))
                     && !board.getTiles()[x+3][y].getColour().getName().equals("white")) {
-                if (y - 4 >= 0) validMoves.add(board.getTiles()[x+2][y-4]);
-                if (y + 4 < board.getTiles()[0].length) validMoves.add(board.getTiles()[x+2][y+4]);
+                if (y - 4 >= 0 && board.getTiles()[x+2][y-2].getColour().getName().equals("white")) validMoves.add(board.getTiles()[x+2][y-4]);
+                if (y + 4 < board.getTiles()[0].length && board.getTiles()[x+2][y+2].getColour().getName().equals("white")) validMoves.add(board.getTiles()[x+2][y+4]);
             }
         }
         // 左边
@@ -294,8 +302,8 @@ public class Quoridor extends Game{
             }
             else if (y - 8 >= 0 && board.getTiles()[x][y-4].getPiece().getSymbol().equals(opponentPieceSymbol(currentPlayer))
                     && !board.getTiles()[x][y-6].getColour().getName().equals("white")) {
-                if (x - 2 >= 0) validMoves.add(board.getTiles()[x-2][y-4]);
-                if (x + 2 < board.getTiles().length) validMoves.add(board.getTiles()[x+2][y-4]);
+                if (x - 2 >= 0 && board.getTiles()[x-1][y-4].getColour().getName().equals("white")) validMoves.add(board.getTiles()[x-2][y-4]);
+                if (x + 2 < board.getTiles().length && board.getTiles()[x+1][y-4].getColour().getName().equals("white")) validMoves.add(board.getTiles()[x+2][y-4]);
             }
         }
         // 右边
@@ -310,8 +318,8 @@ public class Quoridor extends Game{
             }
             else if (y + 8 < board.getTiles()[0].length && board.getTiles()[x][y+4].getPiece().getSymbol().equals(opponentPieceSymbol(currentPlayer))
                     && !board.getTiles()[x][y+6].getColour().getName().equals("white")) {
-                if (x - 2 >= 0) validMoves.add(board.getTiles()[x-2][y+4]);
-                if (x + 2 < board.getTiles().length) validMoves.add(board.getTiles()[x+2][y+4]);
+                if (x - 2 >= 0 && board.getTiles()[x-1][y+4].getColour().getName().equals("white")) validMoves.add(board.getTiles()[x-2][y+4]);
+                if (x + 2 < board.getTiles().length && board.getTiles()[x+1][y+4].getColour().getName().equals("white")) validMoves.add(board.getTiles()[x+2][y+4]);
             }
         }
 
@@ -451,6 +459,9 @@ public class Quoridor extends Game{
             if ("quit".equalsIgnoreCase(input)) {
                 System.out.println("Exiting the game...");
                 System.exit(0);  // Terminate the program
+            }
+            if ("r".equalsIgnoreCase(input)) {
+                return null;  // Return null if the player chooses to return
             }
             if (!input.matches("\\d+")) { // if input is not a number
                 System.out.println("Invalid input. Please enter a number.");
