@@ -4,28 +4,23 @@ import java.util.stream.Collectors;
 
 public class Quoridor extends Game{
     private List<Wall> placedWalls;
-    public Quoridor(){
-        super();
-        setGame_id(1);
-        this.teams = new ArrayList<>();
-        this.placedWalls = new ArrayList<>();
-        createTeams();
-        init_team();
-        execute();
+    public Quoridor(GameManager gameManager){
+        super(gameManager);
     }
     @Override
     protected void execute() {  // the main logic of the game
         int currentPlayerIndex = 0;
+        this.placedWalls = new ArrayList<>();
         board = new Board(9);
         choose_piece();
         board.show_board(board.getTiles());
         System.out.println();
         while(true){
-            if(selectedPlayers[currentPlayerIndex].getNumOfWalls() == 0){ // if the player has no walls left
-                System.out.println("Player" + (currentPlayerIndex+1) + " " + selectedPlayers[currentPlayerIndex].getName() +
+            if(getGameManager().getGameUIManager().getSelectedPlayers()[currentPlayerIndex].getNumOfWalls() == 0){ // if the player has no walls left
+                System.out.println("Player" + (currentPlayerIndex+1) + " " + getGameManager().getGameUIManager().getSelectedPlayers()[currentPlayerIndex].getName() +
                         " move :");
             }else{
-                System.out.println("Player" + (currentPlayerIndex+1) + " " + selectedPlayers[currentPlayerIndex].getName() +
+                System.out.println("Player" + (currentPlayerIndex+1) + " " + getGameManager().getGameUIManager().getSelectedPlayers()[currentPlayerIndex].getName() +
                         " move or place a wall :");
             }
             validMoveOrWall(currentPlayerIndex);  // execute the move or place a wall
@@ -36,13 +31,13 @@ public class Quoridor extends Game{
                 after_win(1);
                 break;
             }
-            currentPlayerIndex = (currentPlayerIndex + 1) % selectedPlayers.length;
+            currentPlayerIndex = (currentPlayerIndex + 1) % getGameManager().getGameUIManager().getSelectedPlayers().length;
         }
     }
     private int is_win() {
-        if (selectedPlayers[0].getX() == 16) {
+        if (getGameManager().getGameUIManager().getSelectedPlayers()[0].getX() == 16) {
             return 1;
-        } else if (selectedPlayers[1].getX() == 0) {
+        } else if (getGameManager().getGameUIManager().getSelectedPlayers()[1].getX() == 0) {
             return 2;
         }
         return 0;
@@ -65,7 +60,7 @@ public class Quoridor extends Game{
                         System.out.println("This piece is already chosen by Player 1. Please choose a different letter.");
                         continue;
                     }
-                    selectedPlayers[i].setPiece(new Piece(input.toUpperCase()));
+                    getGameManager().getGameUIManager().getSelectedPlayers()[i].setPiece(new Piece(input.toUpperCase()));
                     // 如果是第一个玩家，记录其选择的棋子以供后续比较
                     if (i == 0) {
                         firstPlayerPiece = input;
@@ -76,16 +71,16 @@ public class Quoridor extends Game{
                 }
             }
         }
-        setPieceToInitialPosition(selectedPlayers[0], 0, 17);
-        setPieceToInitialPosition(selectedPlayers[1], 16, 17);
-        selectedPlayers[0].setX(0);
-        selectedPlayers[0].setY(17);
-        selectedPlayers[1].setX(16);
-        selectedPlayers[1].setY(17);
+        setPieceToInitialPosition(getGameManager().getGameUIManager().getSelectedPlayers()[0], 0, 17);
+        setPieceToInitialPosition(getGameManager().getGameUIManager().getSelectedPlayers()[1], 16, 17);
+        getGameManager().getGameUIManager().getSelectedPlayers()[0].setX(0);
+        getGameManager().getGameUIManager().getSelectedPlayers()[0].setY(17);
+        getGameManager().getGameUIManager().getSelectedPlayers()[1].setX(16);
+        getGameManager().getGameUIManager().getSelectedPlayers()[1].setY(17);
     }
 
     public void setPieceToInitialPosition(Player player, int x, int y) {
-        Colour colour = new Colour(getPlayerTeam(player).getColour().getName());
+        Colour colour = new Colour(teamManager.getPlayerTeam(player).getColour().getName());
         String pieceSymbol = player.getPiece().getSymbol();
         board.setTile(x, y, pieceSymbol, colour);
     }
@@ -101,17 +96,18 @@ public class Quoridor extends Game{
                 System.exit(0);
             } else if (input.equals("m")) {
                 // 调用移动玩家的逻辑
-                Tile chosenTile = move(selectedPlayers[currentPlayerIndex]);
+                Tile chosenTile = move(getGameManager().getGameUIManager().getSelectedPlayers()[currentPlayerIndex]);
                 if(chosenTile == null) { // If user wants to return
                     continue;  // Restart the loop to let the user choose again
                 }
                 break;
             } else if (input.equals("p")) {
-                if (selectedPlayers[currentPlayerIndex].getNumOfWalls() == 0) {
+
+                if (getGameManager().getGameUIManager().getSelectedPlayers()[currentPlayerIndex].getNumOfWalls() == 0) {
                     System.out.println("You have no walls left. Please make a valid choice.");
                 } else {
                     // 调用放置墙的逻辑
-                    placeWall(selectedPlayers[currentPlayerIndex]);
+                    placeWall(getGameManager().getGameUIManager().getSelectedPlayers()[currentPlayerIndex]);
                     break;
                 }
             } else {
@@ -123,10 +119,11 @@ public class Quoridor extends Game{
         List<Tile> validMoves = findValidMoves(currentPlayer);
         displayValidMovesOnBoard(validMoves);
         Tile chosenTile = getUserMoveChoice(validMoves);
-        if(chosenTile == null) {
+        clearDisplayedMoves(validMoves);
+        if(chosenTile == null) { // If user wants to return
             return null;
         }
-        executeMoveChoice(currentPlayer, chosenTile, validMoves);
+        executeMoveChoice(currentPlayer, chosenTile);
         return chosenTile;
     }
 
@@ -155,7 +152,7 @@ public class Quoridor extends Game{
                 }
                 if (isWallPlaced) {
                     currentPlayer.setNumOfWalls(currentPlayer.getNumOfWalls() - 1);
-                    System.out.println("Player" + (selectedPlayers[0] == currentPlayer ? "1" : "2") + " " + currentPlayer.getName() + " has " + currentPlayer.getNumOfWalls() + " walls left.");
+                    System.out.println("Player" + (getGameManager().getGameUIManager().getSelectedPlayers()[0] == currentPlayer ? "1" : "2") + " " + currentPlayer.getName() + " has " + currentPlayer.getNumOfWalls() + " walls left.");
                     System.out.println();
                     break;
                 }
@@ -197,7 +194,7 @@ public class Quoridor extends Game{
             return false;
         }
         // Here, place the wall on the board.
-        String colourName = getPlayerTeam(currentPlayer).getColour().getName();
+        String colourName = teamManager.getPlayerTeam(currentPlayer).getColour().getName();
         Colour wallColour = new Colour(colourName);
         for (int i = xStart; i <= xEnd; i++) {
             for (int j = yStart; j <= yEnd; j++) {
@@ -475,15 +472,14 @@ public class Quoridor extends Game{
             }
         }
     }
-    private void executeMoveChoice(Player currentPlayer, Tile chosenTile, List<Tile> sortedValidMoves) {
+    private void executeMoveChoice(Player currentPlayer, Tile chosenTile) {
         int x = currentPlayer.getX();
         int y = currentPlayer.getY();
 
         currentPlayer.setX(chosenTile.getX());
         currentPlayer.setY(chosenTile.getY());
 
-        clearDisplayedMoves(sortedValidMoves);
-        board.setTile(chosenTile.getX(), chosenTile.getY(), currentPlayer.getPiece().getSymbol(), getPlayerTeam(currentPlayer).getColour());
+        board.setTile(chosenTile.getX(), chosenTile.getY(), currentPlayer.getPiece().getSymbol(), teamManager.getPlayerTeam(currentPlayer).getColour());
         board.setTile(x, y, " ", new Colour("white"));
         board.show_board(board.getTiles());
     }
@@ -493,7 +489,7 @@ public class Quoridor extends Game{
         }
     }
     private String opponentPieceSymbol(Player currentPlayer) {
-        return (currentPlayer == selectedPlayers[0]) ? selectedPlayers[1].getPiece().getSymbol() : selectedPlayers[0].getPiece().getSymbol();
+        return (currentPlayer == getGameManager().getGameUIManager().getSelectedPlayers()[0]) ? getGameManager().getGameUIManager().getSelectedPlayers()[1].getPiece().getSymbol() : getGameManager().getGameUIManager().getSelectedPlayers()[0].getPiece().getSymbol();
     }
     public void copyBoard(Tile[][] source, Tile[][] destination) {
         int sourceRows = source.length;  // 2*n-1
@@ -510,30 +506,30 @@ public class Quoridor extends Game{
     }
     public void after_win(int currentPlayerIndex){
         try{
-            if(getPlayerTeam(selectedPlayers[0]).equals(getPlayerTeam(selectedPlayers[1]))) {
-                System.out.println("Congratulations! Player" + (currentPlayerIndex+1) +" "+ selectedPlayers[currentPlayerIndex].getName() + " win the game!");
+            if(teamManager.getPlayerTeam(getGameManager().getGameUIManager().getSelectedPlayers()[0]).equals(teamManager.getPlayerTeam(getGameManager().getGameUIManager().getSelectedPlayers()[1]))) {
+                System.out.println("Congratulations! Player" + (currentPlayerIndex+1) +" "+ getGameManager().getGameUIManager().getSelectedPlayers()[currentPlayerIndex].getName() + " win the game!");
                 System.out.println("No scoring will be done when members of the same team play against each other.");
                 System.out.println(" ");
-                for (Team team : teams) {
+                for (Team team : teamManager.getTeams()) {
                     System.out.println("Team " + team.getName() + " Score: " + team.getScore());
                     System.out.println("Players in Team " + team.getName() + ":");
                     for (Player player : team.getPlayers()) {
                         System.out.println(player.getName() + " Score: " + player.getScore());
                     }
                 }
-                for (Player player : selectedPlayers) {
+                for (Player player : getGameManager().getGameUIManager().getSelectedPlayers()) {
                     if (player != null) {
                         player.setChosen(false);
                     }
                 }
             }
             else{
-                System.out.println("Congratulations! Player" + (currentPlayerIndex+1) +" "+ selectedPlayers[currentPlayerIndex].getName() + " win the game!");
-                System.out.println("You and your team "+ getPlayerTeam(selectedPlayers[currentPlayerIndex]).getName() + " will get 1 point.");
-                getPlayerTeam(selectedPlayers[currentPlayerIndex]).addScore();
-                selectedPlayers[currentPlayerIndex].addScore();
+                System.out.println("Congratulations! Player" + (currentPlayerIndex+1) +" "+ getGameManager().getGameUIManager().getSelectedPlayers()[currentPlayerIndex].getName() + " win the game!");
+                System.out.println("You and your team "+ teamManager.getPlayerTeam(getGameManager().getGameUIManager().getSelectedPlayers()[currentPlayerIndex]).getName() + " will get 1 point.");
+                teamManager.getPlayerTeam(getGameManager().getGameUIManager().getSelectedPlayers()[currentPlayerIndex]).addScore();
+                getGameManager().getGameUIManager().getSelectedPlayers()[currentPlayerIndex].addScore();
                 System.out.println(" ");
-                for (Team team : teams) {
+                for (Team team : teamManager.getTeams()) {
                     System.out.println("Team " + team.getName() + " Score: " + team.getScore());
                     System.out.println("Players in Team " + team.getName() + ":");
                     for (Player player : team.getPlayers()) {
@@ -541,7 +537,7 @@ public class Quoridor extends Game{
                     }
                     System.out.println(" ");
                 }
-                for (Player player : selectedPlayers) {
+                for (Player player : getGameManager().getGameUIManager().getSelectedPlayers()) {
                     if (player != null) {
                         player.setChosen(false);
                     }
@@ -554,7 +550,8 @@ public class Quoridor extends Game{
             System.out.println("Met Error");
         }
     }
-    public void Finishgame_test(){
+    @Override
+    protected void Finishgame_test(){
         boolean flag;
         do {        // whether users input a valid number of game choosing
             Scanner scanner = new Scanner(System.in);
@@ -597,5 +594,34 @@ public class Quoridor extends Game{
         }
         board.show_board1(tile, 9);
     }
-
+    protected boolean test_input_finishgame(Scanner scanner) {
+        String input = scanner.nextLine().trim();
+        // Check for "quit" input
+        if ("quit".equalsIgnoreCase(input)) {
+            System.out.println("Exiting the game...");
+            System.out.println("BTW, you can enter 3 to quit the game too");
+            System.exit(0);
+        }
+        // If not "quit", check if it's an integer
+        try {
+            int n = Integer.parseInt(input);
+            if (n == 1) {
+                getGameManager().getGameUIManager().AnotherStart();
+                execute();
+                return true;
+            } else if (n == 2) {
+                getGameManager().startNewGame();
+                return true;
+            } else if (n == 3) {
+                System.exit(0);
+                return true;
+            } else {
+                System.out.println("We seem do not have this option! Try again!");
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("We seem do not have this option! Try again!");
+            return false;
+        }
+    }
 }
