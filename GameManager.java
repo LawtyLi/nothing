@@ -23,8 +23,8 @@ public class GameManager {
         Team team2;
         while (true) {
             // Select two players from two teams (by team name)
-            team1 = teamManager.selectTeam("Select Team 1 (by team name or 'bot'): ");
-            team2 = teamManager.selectTeam("Select Team 2 (by team name or 'bot'): ");
+            team1 = teamManager.selectTeam("Select Team 1 (by team name): ");
+            team2 = teamManager.selectTeam("Select Team 2 (by team name): ");
 
             if (team1.equals(team2) && team1.getPlayersLength() == 1) {
                 System.out.println("You cannot choose a team with only one player to play against itself. Please choose another team.");

@@ -163,5 +163,4 @@ public class TeamManager {
     public Set<String> getUsedPlayerName() {
         return usedPlayerName;
     }
-// ... any other team related methods ...
 }

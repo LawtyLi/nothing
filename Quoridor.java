@@ -11,7 +11,8 @@ public class Quoridor extends Game{
     protected void execute() {  // the main logic of the game
         int currentPlayerIndex = 0;
         this.placedWalls = new ArrayList<>();
-        board = new Board(9);
+        System.out.println("Now input your board size of this round(7 or 9 or 11) ");
+        board = new Board();
         choose_piece();
         board.show_board(board.getTiles());
         System.out.println();
@@ -71,12 +72,12 @@ public class Quoridor extends Game{
                 }
             }
         }
-        setPieceToInitialPosition(getGameManager().getGameUIManager().getSelectedPlayers()[0], 0, 17);
-        setPieceToInitialPosition(getGameManager().getGameUIManager().getSelectedPlayers()[1], 16, 17);
+        setPieceToInitialPosition(getGameManager().getGameUIManager().getSelectedPlayers()[0], 0, 2* board.getSize()-1);
+        setPieceToInitialPosition(getGameManager().getGameUIManager().getSelectedPlayers()[1], 2* board.getSize()-2, 2* board.getSize()-1);
         getGameManager().getGameUIManager().getSelectedPlayers()[0].setX(0);
-        getGameManager().getGameUIManager().getSelectedPlayers()[0].setY(17);
-        getGameManager().getGameUIManager().getSelectedPlayers()[1].setX(16);
-        getGameManager().getGameUIManager().getSelectedPlayers()[1].setY(17);
+        getGameManager().getGameUIManager().getSelectedPlayers()[0].setY(2* board.getSize()-1);
+        getGameManager().getGameUIManager().getSelectedPlayers()[1].setX(2* board.getSize()-2);
+        getGameManager().getGameUIManager().getSelectedPlayers()[1].setY(2* board.getSize()-1);
     }
 
     public void setPieceToInitialPosition(Player player, int x, int y) {
@@ -107,7 +108,10 @@ public class Quoridor extends Game{
                     System.out.println("You have no walls left. Please make a valid choice.");
                 } else {
                     // 调用放置墙的逻辑
-                    placeWall(getGameManager().getGameUIManager().getSelectedPlayers()[currentPlayerIndex]);
+                    String check = placeWall(getGameManager().getGameUIManager().getSelectedPlayers()[currentPlayerIndex]);
+                    if(check.equals("retry")) { // If user wants to return
+                        continue;  // Restart the loop to let the user choose again
+                    }
                     break;
                 }
             } else {
@@ -127,15 +131,16 @@ public class Quoridor extends Game{
         return chosenTile;
     }
 
-    public void placeWall(Player currentPlayer) {
+    public String placeWall(Player currentPlayer) {
         Scanner scanner = new Scanner(System.in);
         boolean isWallPlaced = false;
-        String wallOrientation;
+        String wallOrientation = null;
         String[] wallCoordinates = null;
         while (!isWallPlaced ) {
             // 获取墙的方向
             while (true) {
                 wallOrientation = getWallOrientation(scanner);
+                if(wallOrientation == "retry") return wallOrientation;
                 if (wallOrientation == null) continue;
                 // 使用一个新的内部循环来获取墙坐标并验证
                 while (true) {
@@ -158,10 +163,11 @@ public class Quoridor extends Game{
                 }
             }
         }
+        return wallOrientation;
     }
     private String[] getWallCoordinates(Scanner scanner, String wallOrientation, Board board) {
         while (true) {
-            System.out.print(wallOrientation.equals("1") ? "Enter wall coordinates in the format “row column1 column2” like '4 5 6'(or 'r' to return): " : "Enter wall coordinates in the format “c r1 r2” (or 'r' to return): ");
+            System.out.print(wallOrientation.equals("1") ? "Enter wall coordinates in the format “row column1 column2” like '4 5 6'(or 'r' to return): " : "Enter wall coordinates in the format “column row1 row2” like '4 5 6'(or 'r' to return): ");
             String input = scanner.nextLine().trim();
             if ("quit".equalsIgnoreCase(input)) {
                 System.out.println("Exiting the game...");
@@ -232,13 +238,16 @@ public class Quoridor extends Game{
     }
 
     private boolean isValidCoordinates(String[] wallCoordinates) {
+        if(wallCoordinates.length < 3) { // Ensure there are at least three elements
+            return false;
+        }
         try {
             int coord1 = Integer.parseInt(wallCoordinates[0]);
             int coord2 = Integer.parseInt(wallCoordinates[1]);
             int coord3 = Integer.parseInt(wallCoordinates[2]);
 
             // Check if the coordinates are within the valid range
-            boolean validRange = (coord1 >= 1 && coord1 <= 8) && (coord2 >= 1 && coord2 <= 9) && (coord3 >= 1 && coord3 <= 9);
+            boolean validRange = (coord1 >= 1 && coord1 <= board.getSize()-1) && (coord2 >= 1 && coord2 <= board.getSize()) && (coord3 >= 1 && coord3 <= board.getSize());
 
             // Check if the difference between coord2 and coord3 is 1
             boolean validDifference = Math.abs(coord2 - coord3) == 1;
@@ -393,13 +402,15 @@ public class Quoridor extends Game{
         return true;
     }
     private String getWallOrientation(Scanner scanner){
-        System.out.print("Enter 1 for horizontal wall or 2 for vertical wall (You can change the choice anytime until a valid wall is placed): ");
+        System.out.print("Enter 1 for horizontal wall or 2 for vertical wall or 'r' to return to choose move or place the wall: ");
         String wallOrientation = scanner.nextLine();
         if ("quit".equalsIgnoreCase(wallOrientation)) {
             System.out.println("Exiting the game...");
             System.exit(0);  // Terminate the program
         }
-
+        if ("r".equalsIgnoreCase(wallOrientation)) {
+            return "retry"; // Return null to signify that the user wants to return to the previous menu.
+        }
         if (wallOrientation.equals("1")) {
             // Print the board suitable for horizontal wall placement
             generateHorizontalWallView();
@@ -559,9 +570,9 @@ public class Quoridor extends Game{
         } while (!flag);
     }
     public void generateHorizontalWallView() {
-        Tile[][] tile = new Tile[2*9][4*9];
-        for (int i = 0; i < 2*9; i++) {
-            for (int j = 0; j < 4*9; j++) {
+        Tile[][] tile = new Tile[2*board.getSize()][4*board.getSize()];
+        for (int i = 0; i < 2*board.getSize(); i++) {
+            for (int j = 0; j < 4*board.getSize(); j++) {
                 tile[i][j] = new Tile(i, j); // initialize each Tile object
             }
         }
@@ -574,12 +585,12 @@ public class Quoridor extends Game{
         for(int i=2;i<tile.length;i+=2){
             tile[i][0].getPiece().setSymbol(String.valueOf(count++));
         }
-        board.show_board1(tile, 9);
+        board.show_board1(tile, board.getSize());
     }
     public void generateVerticalWallView() {
-        Tile[][] tile = new Tile[2*9][4*9];
-        for (int i = 0; i < 2*9; i++) {
-            for (int j = 0; j < 4*9; j++) {
+        Tile[][] tile = new Tile[2*board.getSize()][4*board.getSize()];
+        for (int i = 0; i < 2*board.getSize(); i++) {
+            for (int j = 0; j < 4*board.getSize(); j++) {
                 tile[i][j] = new Tile(i, j); // initialize each Tile object
             }
         }
@@ -592,7 +603,7 @@ public class Quoridor extends Game{
         for(int i=1;i<tile.length;i+=2){
             tile[i][0].getPiece().setSymbol(String.valueOf(count1++));
         }
-        board.show_board1(tile, 9);
+        board.show_board1(tile, board.getSize());
     }
     protected boolean test_input_finishgame(Scanner scanner) {
         String input = scanner.nextLine().trim();
