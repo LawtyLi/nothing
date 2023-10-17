@@ -1,6 +1,6 @@
 import java.util.*;
 
-public class TeamManager {
+public class TeamManager { // it manages the teams registered in the game
     private final Set<String> usedTeamNames = new HashSet<>();
     private final Set<String> usedPlayerName = new HashSet<>();
     private final List<Team> teams = new ArrayList<>();

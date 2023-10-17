@@ -1,8 +1,9 @@
+import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 
-public class InputValidator {
+public class InputValidator { //    validate the input
     public static int validateGameChoice() {
         Scanner scanner = new Scanner(System.in);
         int gameChoice;
@@ -12,7 +13,7 @@ public class InputValidator {
             if (scanner.hasNextInt()) {
                 gameChoice = scanner.nextInt();
 
-                if (gameChoice == 1){
+                if (gameChoice == 1 || gameChoice == 2 || gameChoice == 3 || gameChoice == 4) {
                     return gameChoice;
                 } else {
                     System.out.println("No corresponding game available at the moment.");
@@ -188,6 +189,80 @@ public class InputValidator {
             }
         }
     }
+    public static int getValidPlayerChoice(int maxChoice) {
+        int choice;
+        do {
+            choice = InputValidator.getIntInput("Enter the number of the player you choose: ") - 1;
+
+            if (choice >= 0 && choice < maxChoice) {
+                return choice;
+            } else {
+                System.out.println("Invalid player selection. Please choose a valid player number.");
+            }
+        } while (true);
+    }
+    public static String selectColor(String piece_type) {
+        Set<String> chosenColors = new HashSet<>();
+        String[] availableColors = {"red", "blue", "green", "yellow", "purple"};
+        Scanner scanner = new Scanner(System.in);
+
+        while (true) {
+            System.out.println("Enter the color for " + piece_type + " (red, blue, green, yellow, purple):");
+            String color = scanner.nextLine().toLowerCase();
+            // Check for the "quit" input
+            if ("quit".equalsIgnoreCase(color)) {
+                System.out.println("Exiting the game...");
+                System.exit(0);
+            }
+            if (InputValidator.containsIgnoreCase(availableColors, color) && !chosenColors.contains(color)) {
+                chosenColors.add(color);
+                return color;
+            } else {
+                System.out.println("Invalid color or color already chosen. Please choose a different color.");
+            }
+        }
+    }
+    public static String selectColor(String piece_type, String otherPlayerColor) {
+        Set<String> chosenColors = new HashSet<>();
+        String[] availableColors = {"red", "blue", "green", "yellow", "purple"};
+        Scanner scanner = new Scanner(System.in);
+
+        while (true) {
+            System.out.println("Enter the color for " + piece_type + " (red, blue, green, yellow, purple):");
+            String color = scanner.nextLine().toLowerCase();
+            if ("quit".equalsIgnoreCase(color)) {
+                System.out.println("Exiting the game...");
+                System.exit(0);
+            }
+            if (containsIgnoreCase(availableColors, color) && !color.equalsIgnoreCase(otherPlayerColor) && !chosenColors.contains(color)) {
+                chosenColors.add(color);
+                return color;
+            } else {
+                System.out.println("Invalid color or color already chosen. Please choose a different color.");
+            }
+        }
+    }
+    public static boolean containsIgnoreCase(String[] array, String value) {
+        for (String item : array) {
+            if (item.equalsIgnoreCase(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static char getYesOrNoInput() {
+        Scanner scanner = new Scanner(System.in);
+        while (true) {
+            String input = scanner.nextLine().trim().toLowerCase();
+            if (input.equals("y")) {
+                return 'y';
+            } else if (input.equals("n")) {
+                return 'n';
+            } else {
+                System.out.println("Invalid input. Please enter 'y' or 'n':");
+            }
+        }
+    }
     public static String getPlayerPieceChoice(Scanner scanner) {
         while (true) {
             String pieceInput = scanner.nextLine().trim().toUpperCase();
@@ -201,18 +276,6 @@ public class InputValidator {
                 System.out.println("Invalid input. Please enter 'X' or 'O'.");
             }
         }
-    }
-    public static int getValidPlayerChoice(int maxChoice) {
-        int choice;
-        do {
-            choice = InputValidator.getIntInput("Enter the number of the player you choose: ") - 1;
-
-            if (choice >= 0 && choice < maxChoice) {
-                return choice;
-            } else {
-                System.out.println("Invalid player selection. Please choose a valid player number.");
-            }
-        } while (true);
     }
     private static boolean isValidTeamName1(String teamName) {
 

@@ -1,4 +1,4 @@
-public class Colour {
+public class Colour { // the colour of the piece
     private String name;
     public Colour() {
         this.name = null;}

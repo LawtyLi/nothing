@@ -1,7 +1,9 @@
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
-public class GameManager {
+public class GameManager { // it manages the game and the game UI
     private final TeamManager teamManager;
     private final PlayerManager playerManager;
     private GameFactory gameFactory;

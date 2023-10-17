@@ -1,4 +1,6 @@
-public class Player {
+import java.util.ArrayList;
+
+public class Player { // the player
     private Piece piece;
     private boolean chosen;
     private String name;
@@ -6,7 +8,7 @@ public class Player {
     private int numOfWalls;
     private int x;
     private int y;
-
+    private ArrayList<Integer> piece_pos = new ArrayList<Integer>();
     public static final Player BOT = new Player("bot");
 
     public Player(String playerName) {
@@ -36,7 +38,7 @@ public class Player {
     public int getNumOfWalls() {return numOfWalls;}
 
     public void setNumOfWalls(int numOfWalls) {this.numOfWalls = numOfWalls;}
-
+    public void setPiece_pos(int i) {piece_pos.add(i);}
     public int getX() {return x;}
     public int getY() {return y;}
     public void setX(int x) {this.x = x;}

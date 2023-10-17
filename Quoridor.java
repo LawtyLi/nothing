@@ -2,7 +2,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-public class Quoridor extends Game{
+public class Quoridor extends Game implements WinRelated{ // the game class
     private List<Wall> placedWalls;
     public Quoridor(GameManager gameManager){
         super(gameManager);
@@ -12,8 +12,8 @@ public class Quoridor extends Game{
         int currentPlayerIndex = 0;
         this.placedWalls = new ArrayList<>();
         System.out.println("Now input your board size of this round(7 or 9 or 11) ");
-        board = new Board();
-        choose_piece();
+        board = new Board('Q'); // create a new board
+        choose_piece(); // choose the piece
         board.show_board(board.getTiles());
         System.out.println();
         while(true){
@@ -36,7 +36,7 @@ public class Quoridor extends Game{
         }
     }
     private int is_win() {
-        if (getGameManager().getGameUIManager().getSelectedPlayers()[0].getX() == 16) {
+        if (getGameManager().getGameUIManager().getSelectedPlayers()[0].getX() == 2* board.getSize()-2) {
             return 1;
         } else if (getGameManager().getGameUIManager().getSelectedPlayers()[1].getX() == 0) {
             return 2;
@@ -137,21 +137,21 @@ public class Quoridor extends Game{
         String wallOrientation = null;
         String[] wallCoordinates = null;
         while (!isWallPlaced ) {
-            // 获取墙的方向
+            // get wall orientation
             while (true) {
                 wallOrientation = getWallOrientation(scanner);
                 if(wallOrientation == "retry") return wallOrientation;
                 if (wallOrientation == null) continue;
-                // 使用一个新的内部循环来获取墙坐标并验证
+                // use wall orientation to get wall coordinates
                 while (true) {
                     wallCoordinates = getWallCoordinates(scanner, wallOrientation, board);
-                    if (wallCoordinates == null) break; // 如果用户选择返回，则跳出内部循环
+                    if (wallCoordinates == null) break; // if user wants to return
 
                     if (placeAndShowWall(wallOrientation, wallCoordinates, board, currentPlayer, placedWalls)) {
                         isWallPlaced = true;
-                        break;  // 如果成功放置了墙，跳出内部循环
+                        break;  // if wall is placed successfully, break out of the loop
                     } else {
-                        // 如果placeAndShowWall返回false，则continue使循环返回到getWallCoordinates
+                        // if placeAndShowWall return false，then continue getWallCoordinates
                         continue;
                     }
                 }
@@ -209,7 +209,7 @@ public class Quoridor extends Game{
                 }
             }
         }
-        // 存储墙的信息
+        // store the wall in the list of placed walls
         Wall.Direction direction = (wallOrientation.equals("1")) ? Wall.Direction.HORIZONTAL : Wall.Direction.VERTICAL;
         Wall wall = new Wall(wallColour, direction, new Wall.Coordinate(xStart, yStart));
         placedWalls.add(wall);
@@ -232,7 +232,7 @@ public class Quoridor extends Game{
     }
 
     private List<Tile> findValidMovesFromTile(Tile tile) {
-        // 创建一个临时的玩家对象用于findValidMoves方法
+        // create a temporary player to find valid moves
         Player tempPlayer = new Player("", tile.getX(), tile.getY(), new Piece("P"));
         return findValidMoves(tempPlayer);
     }
@@ -261,26 +261,26 @@ public class Quoridor extends Game{
         int x = currentPlayer.getX();
         int y = currentPlayer.getY();
         List<Tile> validMoves = new ArrayList<>();
-        // 上方
+        // up
         if (x - 2 >= 0) {
-            // 1. 没有墙体挡着，也没有对方的棋子挡着
+            // 1. no wall, no opponent piece
             if (board.getTiles()[x-1][y].getColour().getName().equals("white")
                     && !board.getTiles()[x-2][y].getPiece().getSymbol().equals(opponentPieceSymbol(currentPlayer))) {
                 validMoves.add(board.getTiles()[x-2][y]);
             }
-            // 2. 没有墙，但是有对面的棋子，对面的棋子的下一个位置没有墙体
+            // 2. no wall, but there is opponent piece, and there is no wall behind the opponent piece
             else if (x - 4 >= 0 && board.getTiles()[x-2][y].getPiece().getSymbol().equals(opponentPieceSymbol(currentPlayer))
                     && board.getTiles()[x-3][y].getColour().getName().equals("white")) {
                 validMoves.add(board.getTiles()[x-4][y]);
             }
-            // 3. 没有墙，但是有对面的棋子，对面的棋子后面有墙体
+            // 3. no wall, but there is opponent piece, and there is wall behind the opponent piece
             else if (x - 4 >= 0 && board.getTiles()[x-2][y].getPiece().getSymbol().equals(opponentPieceSymbol(currentPlayer))
                     && !board.getTiles()[x-3][y].getColour().getName().equals("white")) {
                 if (y - 4 >= 0 && board.getTiles()[x-2][y-2].getColour().getName().equals("white")) validMoves.add(board.getTiles()[x-2][y-4]);
                 if (y + 4 < board.getTiles()[0].length && board.getTiles()[x-2][y+2].getColour().getName().equals("white")) validMoves.add(board.getTiles()[x-2][y+4]);
             }
         }
-        // 下方
+        // down
         if (x + 2 < board.getTiles().length) {
             if (board.getTiles()[x+1][y].getColour().getName().equals("white")
                     && !board.getTiles()[x+2][y].getPiece().getSymbol().equals(opponentPieceSymbol(currentPlayer))) {
@@ -296,7 +296,7 @@ public class Quoridor extends Game{
                 if (y + 4 < board.getTiles()[0].length && board.getTiles()[x+2][y+2].getColour().getName().equals("white")) validMoves.add(board.getTiles()[x+2][y+4]);
             }
         }
-        // 左边
+        // left
         if (y - 4 >= 0) {
             if (board.getTiles()[x][y-2].getColour().getName().equals("white")
                     && !board.getTiles()[x][y-4].getPiece().getSymbol().equals(opponentPieceSymbol(currentPlayer))) {
@@ -312,7 +312,7 @@ public class Quoridor extends Game{
                 if (x + 2 < board.getTiles().length && board.getTiles()[x+1][y-4].getColour().getName().equals("white")) validMoves.add(board.getTiles()[x+2][y-4]);
             }
         }
-        // 右边
+        // right
         if (y + 4 < board.getTiles()[0].length) {
             if (board.getTiles()[x][y+2].getColour().getName().equals("white")
                     && !board.getTiles()[x][y+4].getPiece().getSymbol().equals(opponentPieceSymbol(currentPlayer))) {
@@ -515,6 +515,7 @@ public class Quoridor extends Game{
             }
         }
     }
+    @Override
     public void after_win(int currentPlayerIndex){
         try{
             if(teamManager.getPlayerTeam(getGameManager().getGameUIManager().getSelectedPlayers()[0]).equals(teamManager.getPlayerTeam(getGameManager().getGameUIManager().getSelectedPlayers()[1]))) {
@@ -562,7 +563,21 @@ public class Quoridor extends Game{
         }
     }
     @Override
-    protected void Finishgame_test(){
+    public String getRetry() {
+        return retry.name();
+    }
+    @Override
+    public void setRetry(String status) {
+        if ("RETRY".equals(status)) {
+            this.retry = Retry.RETRY;
+        } else if ("nRETRY".equals(status)) {
+            this.retry = Retry.nRETRY;
+        } else {
+            throw new IllegalArgumentException("Invalid retry status");
+        }
+    }
+    @Override
+    public void Finishgame_test(){
         boolean flag;
         do {        // whether users input a valid number of game choosing
             Scanner scanner = new Scanner(System.in);
@@ -585,7 +600,7 @@ public class Quoridor extends Game{
         for(int i=2;i<tile.length;i+=2){
             tile[i][0].getPiece().setSymbol(String.valueOf(count++));
         }
-        board.show_board1(tile, board.getSize());
+        board.show_board_spe(tile, board.getSize());
     }
     public void generateVerticalWallView() {
         Tile[][] tile = new Tile[2*board.getSize()][4*board.getSize()];
@@ -603,7 +618,7 @@ public class Quoridor extends Game{
         for(int i=1;i<tile.length;i+=2){
             tile[i][0].getPiece().setSymbol(String.valueOf(count1++));
         }
-        board.show_board1(tile, board.getSize());
+        board.show_board_spe(tile, board.getSize());
     }
     protected boolean test_input_finishgame(Scanner scanner) {
         String input = scanner.nextLine().trim();

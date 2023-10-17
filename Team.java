@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 import java.util.List;
 
-public class Team {
+public class Team { // the team class
     private String name;
     private List<Player> players;
     private int currentPlayerIndex;

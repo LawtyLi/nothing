@@ -1,7 +1,7 @@
 import java.util.Arrays;
 import java.util.Scanner;
 
-public class GameUIManager {
+public class GameUIManager {  // it contains the game UI like restarting the game
     protected Player[] selectedPlayers = new Player[2];
     private final GameManager gameManager;
     private final TeamManager teamManager;

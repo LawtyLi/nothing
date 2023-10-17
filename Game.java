@@ -1,12 +1,13 @@
 import java.util.*;
 
-public abstract class Game {
+public abstract class Game implements Retry{ // the game itself
     protected Board board;
-    private final GameManager gameManager;
+    protected enum Retry{RETRY, nRETRY} // enum for retry
+    protected Retry retry = Retry.nRETRY;
+    private  GameManager gameManager;
     protected TeamManager teamManager;
     protected PlayerManager playerManager;
     protected abstract void execute();
-    protected abstract void Finishgame_test();
 
     public Game(GameManager gameManager){
         this.gameManager = gameManager;
@@ -14,6 +15,7 @@ public abstract class Game {
         this.playerManager = gameManager.getPlayerManager();
         execute();
     }
+    public Game(){}
     protected GameManager getGameManager() {
         return gameManager;
     }

@@ -1,4 +1,4 @@
-public class Piece {
+public class Piece { // the piece itself
     private String symbol;
 
     public Piece(String symbol) {this.symbol = symbol;}

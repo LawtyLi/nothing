@@ -1,14 +1,14 @@
-public class QuoridorGameFactory implements GameFactory { // This class is used to create a game instance.
+public class TTTGameFactory implements GameFactory { // This class is used to create a game instance.
     private final GameManager gameManager;
     private final GameUIManager gameUIManager;
 
-    public QuoridorGameFactory(GameManager gameManager, GameUIManager gameUIManager) {
+    public TTTGameFactory(GameManager gameManager, GameUIManager gameUIManager) {
         this.gameManager = gameManager;
         this.gameUIManager = gameUIManager;
     }
     @Override
     public Game createGame() {
         gameUIManager.AnotherStart();
-        return new Quoridor(gameManager);
+        return new Tic_tac_toe(gameManager);
     }
 }

@@ -1,4 +1,4 @@
-public class Wall {
+public class Wall { // the wall on the board
     private Colour colour;
     private Direction direction;
     private Coordinate start;
